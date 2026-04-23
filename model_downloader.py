@@ -61,45 +61,21 @@ def _confirm_token(session: requests.Session, url: str, file_id: str) -> str:
     return url   # hope for the best
 
 
-def download_from_gdrive(
-    file_id: str,
-    save_path: Path = MODEL_LOCAL_PATH,
-    progress_bar=None,
-) -> Path:
-    """
-    Download a file from Google Drive by file_id.
+import gdown
 
-    Args:
-        file_id      : Google Drive file ID (from share link)
-        save_path    : where to save the downloaded file
-        progress_bar : optional st.progress() object for UI feedback
-
-    Returns path to downloaded file.
-    Skips download if file already exists with non-zero size.
-    """
-    save_path = Path(save_path)
+def download_from_gdrive(file_id: str, save_path: Path, progress_bar=None):
+    url = f"https://drive.google.com/uc?id={file_id}"
+    
     save_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Already downloaded?
     if save_path.exists() and save_path.stat().st_size > 1_000_000:
         return save_path
 
-    session  = requests.Session()
-    base_url = _gdrive_url(file_id)
-    dl_url   = _confirm_token(session, base_url, file_id)
+    gdown.download(url, str(save_path), quiet=False)
 
-    with session.get(dl_url, stream=True, timeout=60) as r:
-        r.raise_for_status()
-        total = int(r.headers.get("content-length", 0))
-        downloaded = 0
-
-        with open(save_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=CHUNK_SIZE_MB * 1024 * 1024):
-                if chunk:
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    if progress_bar and total:
-                        progress_bar.progress(min(downloaded / total, 1.0))
+    # validate
+    if save_path.stat().st_size < 1_000_000:
+        raise ValueError("Downloaded file too small — likely failed")
 
     return save_path
 
