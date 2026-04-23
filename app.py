@@ -337,7 +337,7 @@ with col_right:
         # ── Inference ────────────────────────────────────────────────────────
         with st.spinner("Running inference…"):
             t0    = time.perf_counter()
-            probs = predict(model, img_array, tta=use_tta)
+            probs = predict(model, image, use_tta=use_tta)
             latency_ms = (time.perf_counter() - t0) * 1000
 
         pred_idx   = int(np.argmax(probs))
