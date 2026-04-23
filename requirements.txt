@@ -22,3 +22,4 @@ matplotlib>=3.7.0
 
 # ─── HTTP (model downloader) ──────────────────────────────────────────────────
 requests>=2.31.0
+gdown
